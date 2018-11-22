@@ -38,20 +38,19 @@ def handle_rompath(rompath, wanted_roms, output_dir):
         rom_entry = wanted_roms[md5sum.lower()]
 
         if rom_entry['seen']:
-            print(f'INFO: Duplicate rom "{rom_entry["rom_filename"]}" at "{rompath}" with md5 "{md5sum}"')
+            print(f'DEBUG: Duplicate rom "{rom_entry["rom_filename"]}" at "{rompath}" with md5 "{md5sum}"')
             return
 
         copy_zipped(rompath, rom_entry, output_dir)
-        print(f'INFO: Known rom "{rom_entry["rom_filename"]}" at "{rompath}" with md5 "{md5sum}"')
 
     except PermissionError as e:
-        print(f'INFO: Failed reading rom at "{rompath}": {e}')
+        print(f'DEBUG: Failed reading rom at "{rompath}": {e}')
         return
     except IndexError:
-        print(f'INFO: Empty zip at "{rompath}"')
+        print(f'DEBUG: Empty zip at "{rompath}"')
         return
     except KeyError:
-        print(f'INFO: Unknown rom at "{rompath}" with md5 "{md5sum}"')
+        print(f'DEBUG: Unknown rom at "{rompath}" with md5 "{md5sum}"')
         return
 
 

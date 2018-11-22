@@ -35,9 +35,9 @@ def clean_region_limit(options):
             if region in KNOWN_REGIONS:
                 options.region_limit.append(region)
             else:
-                print(f'main.py: error: argument -l/--region_limit: invalid value. Must be comma separated list of:')
+                print(f'ERROR: argument -l/--region_limit: invalid value. Must be comma separated list of:')
                 for region in KNOWN_REGIONS:
-                    print(f'main.py: error: argument -l/--region_limit:     {region}')
+                    print(f'ERROR:      {region}')
                 sys.exit(2)
 
 
@@ -76,3 +76,11 @@ if __name__ == '__main__':
         wanted_roms = library.build_all_roms(known_games)
 
     copier.process(wanted_roms, options.input_dirs, options.output_dir)
+
+    print('\nHave:')
+    for rom in [x for x in wanted_roms.values() if x['seen'] == True]:
+        print(f"    {rom['name']}")
+
+    print('\nMissing:')
+    for rom in [x for x in wanted_roms.values() if x['seen'] == False]:
+        print(f"    {rom['name']}")
