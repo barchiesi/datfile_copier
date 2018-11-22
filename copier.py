@@ -2,7 +2,6 @@ import os
 import shutil
 from zipfile import ZipFile, is_zipfile, ZIP_LZMA
 import hashlib
-import xml.etree.ElementTree as ET
 
 
 def copy_zipped(rompath, rom_entry, output_dir):
@@ -62,69 +61,6 @@ def iterate_roms(input_dirs):
             yield input_file.path
 
 
-def build_all_roms(known_games):
-    wanted_roms = {}
-    for game_clones in known_games.values():
-        for game in game_clones:
-            wanted_roms[game['rom_md5']] = game
-    return wanted_roms
-
-
-def build_wanted_roms(known_games, region_limit):
-    wanted_roms = {}
-    for game_clones in known_games.values():
-        found = False
-        for region in region_limit:
-            for game in game_clones:
-                if 'region' not in game:
-                    break
-                if game['region'] == region:
-                    wanted_roms[game['rom_md5']] = game
-                    found = True
-                    break
-
-            if found:
-                break
-
-    return wanted_roms
-
-
-def build_known_games(filename):
-    known_games = {}
-    tree = ET.parse(filename)
-    root = tree.getroot()
-    for game_elem in root.findall('.//game'):
-        game = {
-            'name': game_elem.attrib['name'],
-            'seen': False
-        }
-        if 'cloneof' in game_elem.attrib:
-            game_key = game_elem.attrib['cloneof']
-        else:
-            game_key = game['name']
-
-        game_release_elem = game_elem.find('.//release')
-        if game_release_elem != None:
-            game['region'] = game_release_elem.attrib['region']
-
-        rom_elem = game_elem.find('.//rom')
-        game['rom_md5'] = rom_elem.attrib['md5']
-        game['rom_filename'] = rom_elem.attrib['name']
-
-        game_clones = known_games.get(game_key, [])
-        game_clones.append(game)
-        known_games[game_key] = game_clones
-
-    return known_games
-
-
-def process(input_dirs, output_dir, dat_file, region_limit):
-    known_games = build_known_games(dat_file)
-
-    if region_limit:
-        wanted_roms = build_wanted_roms(known_games, region_limit)
-    else:
-        wanted_roms = build_all_roms(known_games)
-
+def process(wanted_roms, input_dirs, output_dir):
     for rompath in iterate_roms(input_dirs):
         handle_rompath(rompath, wanted_roms, output_dir)

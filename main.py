@@ -5,7 +5,8 @@ import os
 import sys
 import argparse
 
-from copier import process
+import copier
+import library
 
 KNOWN_REGIONS = [
 'ASI',
@@ -67,4 +68,11 @@ if __name__ == '__main__':
     clean_region_limit(options)
     validate_dirs(options.input_dirs, options.output_dir)
 
-    process(options.input_dirs, options.output_dir, options.dat, options.region_limit)
+    known_games = library.build_known_games(options.dat)
+
+    if options.region_limit:
+        wanted_roms = library.build_wanted_roms(known_games, options.region_limit)
+    else:
+        wanted_roms = library.build_all_roms(known_games)
+
+    copier.process(wanted_roms, options.input_dirs, options.output_dir)
