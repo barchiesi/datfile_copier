@@ -6,11 +6,12 @@ import sys
 
 import copier
 import library
+from logger import Logger
 
 
 def validate_required(options):
     if not set(['dat', 'input_dirs', 'output_dir']).issubset(options):
-        sys.stderr.write(f'ERROR: Missing one of required [dat, input_dirs, output_dir] options.\n')
+        Logger.error(f'Missing one of required [dat, input_dirs, output_dir] options.')
         sys.exit(2)
 
 
@@ -18,15 +19,18 @@ def validate_dirs(input_dirs, output_dir):
     check_dirs = input_dirs + [output_dir]
     for directory in check_dirs:
         if not os.path.isdir(directory):
-            sys.stderr.write(f'ERROR: "{directory}" does not exist or is not a directory.\n')
+            Logger.error(f'"{directory}" does not exist or is not a directory.')
             sys.exit(2)
 
     if len(os.listdir(output_dir)) != 0:
-        sys.stderr.write(f'ERROR: "{directory}" is not empty.\n')
+        Logger.error(f'"{directory}" is not empty.')
         sys.exit(2)
 
 
 def main(options):
+
+    if 'verbose' in options:
+        Logger.set_level(options['verbose'])
 
     validate_required(options)
     validate_dirs(options['input_dirs'], options['output_dir'])
@@ -42,9 +46,9 @@ def main(options):
     copier.process(wanted_roms, options['input_dirs'], options['output_dir'], options['header_offset'])
 
     have = [x for x in wanted_roms.values() if x['seen'] == True]
-    print(f'\nHave: {len(have)}')
+    Logger.info(f'Have: {len(have)}')
 
     missing = [x for x in wanted_roms.values() if x['seen'] == False]
-    print(f'Missing: {len(missing)}')
+    Logger.info(f'Missing: {len(missing)}')
     for rom in missing:
-        print(f"    {rom['name']}")
+        Logger.info(f"    {rom['name']}")

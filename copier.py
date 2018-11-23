@@ -3,6 +3,8 @@ import shutil
 from zipfile import ZipFile, is_zipfile, ZIP_LZMA
 import hashlib
 
+from logger import Logger
+
 
 def write_zipped(rom_content, rom_filename, final_path):
     with ZipFile(final_path, mode='x', compression=ZIP_LZMA) as zipped_rom:
@@ -45,10 +47,10 @@ def handle_rompath(rom_path, wanted_roms, output_dir, header_offset = None):
     try:
         rom_content = get_rom_content(rom_path)
     except IndexError:
-        print(f'INFO: Empty zip at "{rom_path}"')
+        Logger.debug(f'Empty zip at "{rom_path}"')
         return
     except PermissionError as e:
-        print(f'INFO: Failed reading rom at "{rom_path}": {e}')
+        Logger.debug(f'Failed reading rom at "{rom_path}": {e}')
         return
 
     md5sum, md5sum_noheader = compute_md5(rom_content, header_offset)
@@ -59,12 +61,13 @@ def handle_rompath(rom_path, wanted_roms, output_dir, header_offset = None):
     elif md5sum_noheader and md5sum_noheader in wanted_roms:
         original_good = False
         rom_entry = wanted_roms[md5sum_noheader]
+        Logger.debug(f'Rom with header at "{rom_path}"')
     else:
-        # File not recognized
+        Logger.debug(f'File at "{rom_path}" unrecognized')
         return
 
     if rom_entry['seen']:
-        # Duplicate rom file
+        Logger.debug(f'Duplicate rom at "{rom_path}" for {rom_entry["rom_filename"]}')
         return
 
     final_filename = os.path.splitext(rom_entry['rom_filename'])[0]+'.zip'
@@ -76,6 +79,10 @@ def handle_rompath(rom_path, wanted_roms, output_dir, header_offset = None):
         write_zipped(rom_content, rom_entry['rom_filename'], final_path)
 
     rom_entry['seen'] = True
+    msg = f'Found {rom_entry["rom_filename"]} at "{rom_path}"'
+    if not original_good:
+        msg += ', stripped header'
+    Logger.info(msg)
 
 
 def iterate_roms(input_dirs):
