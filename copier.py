@@ -78,9 +78,21 @@ def handle_rompath(rom_path, wanted_roms, output_dir, header_offset = None):
 
 
 def iterate_roms(input_dirs):
-    for input_dir in input_dirs:
+    work_dirs = list(input_dirs)
+
+    idx = 0
+    while idx < len(work_dirs):
+        input_dir = work_dirs[idx]
+        Logger.info(f'Scanning dir {input_dir}')
         for input_file in os.scandir(input_dir):
-            yield input_file.path
+            if input_file.is_dir():
+                Logger.debug(f'Adding {input_file} to scan queue')
+                work_dirs.append(input_file)
+            elif input_file.is_file():
+                Logger.debug(f'Yielding {input_file} from scan queue')
+                yield input_file.path
+
+        idx += 1
 
 
 def process(wanted_roms, input_dirs, output_dir, header_offset = None):
