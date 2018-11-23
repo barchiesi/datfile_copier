@@ -77,10 +77,10 @@ if __name__ == '__main__':
 
     copier.process(wanted_roms, options.input_dirs, options.output_dir)
 
-    print('\nHave:')
-    for rom in [x for x in wanted_roms.values() if x['seen'] == True]:
-        print(f"    {rom['name']}")
+    have = [x for x in wanted_roms.values() if x['seen'] == True]
+    print(f'\nHave: {len(have)}')
 
-    print('\nMissing:')
-    for rom in [x for x in wanted_roms.values() if x['seen'] == False]:
+    missing = [x for x in wanted_roms.values() if x['seen'] == False]
+    print(f'Missing: {len(missing)}')
+    for rom in missing:
         print(f"    {rom['name']}")
