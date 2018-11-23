@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import sys
+import copy
 import argparse
 
-import copier
-import library
+import datfile_copier
 
 KNOWN_REGIONS = [
 'ASI',
@@ -28,29 +27,17 @@ KNOWN_REGIONS = [
 
 
 def clean_region_limit(options):
-    if options.region_limit is not None:
-        raw_region_limit = options.region_limit
-        options.region_limit = []
+    if 'region_limit' in options:
+        raw_region_limit = options['region_limit']
+        options['region_limit'] = []
         for region in raw_region_limit.split(','):
             if region in KNOWN_REGIONS:
-                options.region_limit.append(region)
+                options['region_limit'].append(region)
             else:
                 print(f'ERROR: argument -l/--region_limit: invalid value. Must be comma separated list of:')
                 for region in KNOWN_REGIONS:
                     print(f'ERROR:      {region}')
                 sys.exit(2)
-
-
-def validate_dirs(input_dirs, output_dir):
-    check_dirs = input_dirs + [output_dir]
-    for directory in check_dirs:
-        if not os.path.isdir(directory):
-            sys.stderr.write(f'ERROR: "{directory}" does not exist or is not a directory.\n')
-            sys.exit(2)
-
-    if len(os.listdir(output_dir)) != 0:
-        sys.stderr.write(f'ERROR: "{directory}" is not empty.\n')
-        sys.exit(2)
 
 
 def parse_args():
@@ -59,30 +46,14 @@ def parse_args():
     parser.add_argument('-o', '--output_dir', action='store', required=True, help='Output directory (must be empty)', metavar='OUTPUT_DIR')
     parser.add_argument('-d', '--dat', action='store', required=True, help='No-intro dat file', metavar='DAT_FILE')
 
-    parser.add_argument('--header_offset', action='store', type=int, help='Offset in bytes to consider for header removal', metavar='HEADER_OFFSET')
-    parser.add_argument('--region_limit', action='store', dest='region_limit', required=False, help='Limit to comma separated region list', metavar='REGION_LIMIT')
+    parser.add_argument('--header_offset', action='store', type=int, help='Offset in bytes to consider for header removal', metavar='HEADER_OFFSET', default=argparse.SUPPRESS)
+    parser.add_argument('--region_limit', action='store', dest='region_limit', required=False, help='Limit to comma separated region list', metavar='REGION_LIMIT', default=argparse.SUPPRESS)
 
     return parser.parse_args()
 
 
 if __name__ == '__main__':
-    options = parse_args()
+    options = vars(parse_args())
     clean_region_limit(options)
-    validate_dirs(options.input_dirs, options.output_dir)
 
-    known_games = library.build_known_games(options.dat)
-
-    if options.region_limit:
-        wanted_roms = library.build_wanted_roms(known_games, options.region_limit)
-    else:
-        wanted_roms = library.build_all_roms(known_games)
-
-    copier.process(wanted_roms, options.input_dirs, options.output_dir)
-
-    have = [x for x in wanted_roms.values() if x['seen'] == True]
-    print(f'\nHave: {len(have)}')
-
-    missing = [x for x in wanted_roms.values() if x['seen'] == False]
-    print(f'Missing: {len(missing)}')
-    for rom in missing:
-        print(f"    {rom['name']}")
+    datfile_copier.main(copy.deepcopy(options))
