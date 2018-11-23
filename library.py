@@ -47,7 +47,7 @@ def build_known_games(filename):
             game['region'] = game_release_elem.attrib['region']
 
         rom_elem = game_elem.find('.//rom')
-        game['rom_md5'] = rom_elem.attrib['md5']
+        game['rom_md5'] = rom_elem.attrib['md5'].lower()
         game['rom_filename'] = rom_elem.attrib['name']
 
         game_clones = known_games.get(game_key, [])

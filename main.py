@@ -55,10 +55,12 @@ def validate_dirs(input_dirs, output_dir):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Extract into output directory all valid roms according to No-intro dat file.')
-    parser.add_argument('-l', '--region_limit', action='store', dest='region_limit', required=False, help='Limit to comma separated region list', metavar='REGION_LIMIT')
     parser.add_argument('-i', '--input_dir', action='append', dest='input_dirs', required=True, help='One or more input directories', metavar='INPUT_DIR')
     parser.add_argument('-o', '--output_dir', action='store', required=True, help='Output directory (must be empty)', metavar='OUTPUT_DIR')
     parser.add_argument('-d', '--dat', action='store', required=True, help='No-intro dat file', metavar='DAT_FILE')
+
+    parser.add_argument('--header_offset', action='store', type=int, help='Offset in bytes to consider for header removal', metavar='HEADER_OFFSET')
+    parser.add_argument('--region_limit', action='store', dest='region_limit', required=False, help='Limit to comma separated region list', metavar='REGION_LIMIT')
 
     return parser.parse_args()
 
