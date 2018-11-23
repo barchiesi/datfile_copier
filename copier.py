@@ -56,10 +56,8 @@ def handle_rompath(rom_path, wanted_roms, output_dir, header_offset = None):
     md5sum, md5sum_noheader = compute_md5(rom_content, header_offset)
 
     if md5sum in wanted_roms:
-        original_good = True
         rom_entry = wanted_roms[md5sum]
     elif md5sum_noheader and md5sum_noheader in wanted_roms:
-        original_good = False
         rom_entry = wanted_roms[md5sum_noheader]
         Logger.debug(f'Rom with header at "{rom_path}"')
     else:
@@ -73,16 +71,10 @@ def handle_rompath(rom_path, wanted_roms, output_dir, header_offset = None):
     final_filename = os.path.splitext(rom_entry['rom_filename'])[0]+'.zip'
     final_path = os.path.join(output_dir, final_filename)
 
-    if original_good:
-        copy_zipped(rom_path, final_path)
-    else:
-        write_zipped(rom_content, rom_entry['rom_filename'], final_path)
+    copy_zipped(rom_path, final_path)
 
     rom_entry['seen'] = True
-    msg = f'Found {rom_entry["rom_filename"]} at "{rom_path}"'
-    if not original_good:
-        msg += ', stripped header'
-    Logger.info(msg)
+    Logger.info(f'Found {rom_entry["rom_filename"]} at "{rom_path}"')
 
 
 def iterate_roms(input_dirs):
