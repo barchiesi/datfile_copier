@@ -43,7 +43,7 @@ def compute_md5(rom_content, header_offset = None):
     return md5sum.hexdigest().lower(), None
 
 
-def handle_rompath(rom_path, wanted_roms, output_dir, header_offset = None):
+def handle_rompath(rom_path, game_library, output_dir, header_offset = None):
     try:
         rom_content = get_rom_content(rom_path)
     except IndexError:
@@ -55,13 +55,19 @@ def handle_rompath(rom_path, wanted_roms, output_dir, header_offset = None):
 
     md5sum, md5sum_noheader = compute_md5(rom_content, header_offset)
 
-    if md5sum in wanted_roms:
-        rom_entry = wanted_roms[md5sum]
-    elif md5sum_noheader and md5sum_noheader in wanted_roms:
-        rom_entry = wanted_roms[md5sum_noheader]
-        Logger.debug(f'Rom with header at "{rom_path}"')
-    else:
+    # Get my md5sum
+    rom_entry = game_library.get_by_md5sum(md5sum)
+
+    # Try with md5sum from stripped header rom
+    if not rom_entry and md5sum_noheader:
+        rom_entry = game_library.get_by_md5sum(md5sum_noheader)
+
+    if not rom_entry:
         Logger.debug(f'File at "{rom_path}" unrecognized')
+        return
+
+    if not rom_entry['selected']:
+        Logger.debug(f'Ignoring unselected rom at "{rom_path}"')
         return
 
     if rom_entry['seen']:
@@ -95,6 +101,6 @@ def iterate_roms(input_dirs):
         idx += 1
 
 
-def process(wanted_roms, input_dirs, output_dir, header_offset = None):
+def process(game_library, input_dirs, output_dir, header_offset = None):
     for rom_path in iterate_roms(input_dirs):
-        handle_rompath(rom_path, wanted_roms, output_dir, header_offset)
+        handle_rompath(rom_path, game_library, output_dir, header_offset)

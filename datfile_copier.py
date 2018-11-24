@@ -5,7 +5,7 @@ import os
 import sys
 
 import copier
-import library
+from library import GameLibrary
 from logger import Logger
 
 
@@ -35,20 +35,19 @@ def main(options):
     validate_required(options)
     validate_dirs(options['input_dirs'], options['output_dir'])
 
-    known_games = library.build_known_games(options['dat'])
+    game_library = GameLibrary(options['dat'])
 
     if 'region_limit' in options:
-        wanted_roms = library.build_wanted_roms(known_games, options['region_limit'])
+        game_library.select_by_region_limit(options['region_limit'])
     else:
-        options['region_limit'] = None
-        wanted_roms = library.build_all_roms(known_games)
+        game_library.select_all()
 
-    copier.process(wanted_roms, options['input_dirs'], options['output_dir'], options['header_offset'])
+    copier.process(game_library, options['input_dirs'], options['output_dir'], options['header_offset'])
 
-    have = [x for x in wanted_roms.values() if x['seen'] == True]
+    have = game_library.get_seen_selected()
     Logger.info(f'Have: {len(have)}')
 
-    missing = [x for x in wanted_roms.values() if x['seen'] == False]
+    missing = game_library.get_missing_selected()
     Logger.info(f'Missing: {len(missing)}')
     for rom in missing:
         Logger.info(f"    {rom['name']}")
