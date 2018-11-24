@@ -34,16 +34,10 @@ def get_rom_content(rom_path):
 def compute_md5(rom_content, header_offset = None):
     md5sum = hashlib.md5()
     md5sum.update(rom_content)
-
-    if header_offset:
-        md5sum_nohead = hashlib.md5()
-        md5sum_nohead.update(rom_content[header_offset:])
-        return md5sum.hexdigest().lower(), md5sum_nohead.hexdigest().lower()
-
-    return md5sum.hexdigest().lower(), None
+    return md5sum.hexdigest().lower()
 
 
-def handle_rompath(rom_path, game_library, output_dir, header_offset = None):
+def handle_rompath(rom_path, game_library, output_dir, header_rules = []):
     try:
         rom_content = get_rom_content(rom_path)
     except IndexError:
@@ -53,34 +47,42 @@ def handle_rompath(rom_path, game_library, output_dir, header_offset = None):
         Logger.debug(f'Failed reading rom at "{rom_path}": {e}')
         return
 
-    md5sum, md5sum_noheader = compute_md5(rom_content, header_offset)
+        md5sum_nohead.update(rom_content[header_offset:])
+    md5sums = []
 
-    # Get my md5sum
-    rom_entry = game_library.get_by_md5sum(md5sum)
+    md5sum_original = compute_md5(rom_content)
+    md5sums.append(md5sum_original)
 
-    # Try with md5sum from stripped header rom
-    if not rom_entry and md5sum_noheader:
-        rom_entry = game_library.get_by_md5sum(md5sum_noheader)
+    for header_rule in header_rules:
+        stripped_rom_content = header_rule.strip_header_from_rom(rom_content)
+        if stripped_rom_content:
+            Logger.debug(f'Found possible stripped header rom')
+            md5sum = compute_md5(stripped_rom_content)
+            md5sums.append(md5sum)
 
-    if not rom_entry:
-        Logger.debug(f'File at "{rom_path}" unrecognized')
-        return
+    for md5sum in md5sums:
+        rom_entry = game_library.get_by_md5sum(md5sum)
 
-    if not rom_entry['selected']:
-        Logger.debug(f'Ignoring unselected rom at "{rom_path}"')
-        return
+        if not rom_entry:
+            Logger.debug(f'File at "{rom_path}" with md5sum "{md5sum}" not recognized')
+            continue
 
-    if rom_entry['seen']:
-        Logger.debug(f'Duplicate rom at "{rom_path}" for {rom_entry["rom_filename"]}')
-        return
+        if not rom_entry['selected']:
+            Logger.debug(f'Ignoring unselected rom at "{rom_path}"')
+            continue
 
-    final_filename = os.path.splitext(rom_entry['rom_filename'])[0]+'.zip'
-    final_path = os.path.join(output_dir, final_filename)
+        if rom_entry['seen']:
+            Logger.debug(f'Duplicate rom at "{rom_path}" for {rom_entry["rom_filename"]}')
+            continue
 
-    copy_zipped(rom_path, final_path)
+        final_filename = os.path.splitext(rom_entry['rom_filename'])[0]+'.zip'
+        final_path = os.path.join(output_dir, final_filename)
 
-    rom_entry['seen'] = True
-    Logger.info(f'Found {rom_entry["rom_filename"]} at "{rom_path}"')
+        copy_zipped(rom_path, final_path)
+
+        rom_entry['seen'] = True
+        Logger.info(f'Found {rom_entry["rom_filename"]} at "{rom_path}"')
+        break
 
 
 def iterate_roms(input_dirs):
@@ -101,6 +103,7 @@ def iterate_roms(input_dirs):
         idx += 1
 
 
-def process(game_library, input_dirs, output_dir, header_offset = None):
+def process(game_library, input_dirs, output_dir):
+    header_rules = game_library.get_header_rules()
     for rom_path in iterate_roms(input_dirs):
-        handle_rompath(rom_path, game_library, output_dir, header_offset)
+        handle_rompath(rom_path, game_library, output_dir, header_rules)

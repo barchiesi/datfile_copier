@@ -60,7 +60,7 @@ def parse_args():
 
     # Optional arguments
     parser.add_argument('--verbose', '-v', action='count', help='verbose up to two times', default=argparse.SUPPRESS)
-    parser.add_argument('--header_offset', action='store', type=int, help='offset in bytes to consider for header ignoring', metavar='HEADER_OFFSET', default=argparse.SUPPRESS)
+    parser.add_argument('--header_xml', action='store', help='path to xml with header skipping information', metavar='HEADER_XML', default=argparse.SUPPRESS)
     parser.add_argument('--region_limit', action='store', dest='region_limit', required=False, help='Limit to comma separated region list (ordered by preference)', metavar='REGION_LIMIT', default=argparse.SUPPRESS)
 
     return parser.parse_args()

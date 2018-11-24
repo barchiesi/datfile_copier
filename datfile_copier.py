@@ -37,12 +37,15 @@ def main(options):
 
     game_library = GameLibrary(options['dat'])
 
+    if 'header_xml' in options:
+        game_library.set_header_xml(options['header_xml'])
+
     if 'region_limit' in options:
         game_library.select_by_region_limit(options['region_limit'])
     else:
         game_library.select_all()
 
-    copier.process(game_library, options['input_dirs'], options['output_dir'], options['header_offset'])
+    copier.process(game_library, options['input_dirs'], options['output_dir'])
 
     have = game_library.get_seen_selected()
     Logger.info(f'Have: {len(have)}')
