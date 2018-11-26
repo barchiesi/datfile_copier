@@ -5,8 +5,8 @@ import sys
 import copy
 import argparse
 
-import datfile_copier
-from logger import LogLevel
+import datfile_copier.datfile_copier as dfc
+from datfile_copier.logger import LogLevel
 
 KNOWN_REGIONS = [
 'ASI',
@@ -66,9 +66,9 @@ def parse_args():
     return parser.parse_args()
 
 
-if __name__ == '__main__':
+def main():
     options = copy.deepcopy(vars(parse_args()))
     clean_verbosity(options)
     clean_region_limit(options)
 
-    datfile_copier.main(options)
+    dfc.process(options)

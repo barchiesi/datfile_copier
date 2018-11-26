@@ -3,7 +3,7 @@ import shutil
 from zipfile import ZipFile, is_zipfile, ZIP_LZMA
 import hashlib
 
-from logger import Logger
+from datfile_copier.logger import Logger
 
 
 def write_zipped(rom_content, rom_filename, final_path):

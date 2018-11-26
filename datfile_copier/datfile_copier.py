@@ -4,9 +4,9 @@
 import os
 import sys
 
-import copier
-from library import GameLibrary
-from logger import Logger
+from datfile_copier.copier import process as copier_process
+from datfile_copier.library import GameLibrary
+from datfile_copier.logger import Logger
 
 
 def validate_required(options):
@@ -27,7 +27,7 @@ def validate_dirs(input_dirs, output_dir):
         sys.exit(2)
 
 
-def main(options):
+def process(options):
 
     if 'verbose' in options:
         Logger.set_level(options['verbose'])
@@ -45,7 +45,7 @@ def main(options):
     else:
         game_library.select_all()
 
-    copier.process(game_library, options['input_dirs'], options['output_dir'])
+    copier_process(game_library, options['input_dirs'], options['output_dir'])
 
     have = game_library.get_seen_selected()
     Logger.info(f'Have: {len(have)}')
