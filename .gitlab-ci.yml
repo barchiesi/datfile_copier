@@ -1,0 +1,15 @@
+image: python:latest
+
+test:
+  script:
+  - python setup.py test
+
+build:
+  script:
+  - python setup.py sdist
+  artifacts:
+    name: "$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME"
+    paths:
+    - dist/*.tar.gz
+  only:
+  - tags
